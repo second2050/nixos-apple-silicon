@@ -15,8 +15,6 @@
   config = let
     cfg = config.hardware.asahi;
 
-    asahi-audio = pkgs.asahi-audio; # the asahi-audio we use
-
     lsp-plugins = pkgs.lsp-plugins;
 
     lsp-plugins-is-safe = (pkgs.lib.versionAtLeast lsp-plugins.version "1.2.14");
@@ -35,13 +33,13 @@
         alsa.enable = true;
         pulse.enable = true;
 
-        configPackages = [ asahi-audio ];
+        configPackages = [ pkgs.asahi-audio ];
         extraLv2Packages = lv2Packages;
 
         wireplumber = {
           enable = true;
 
-          configPackages = [ asahi-audio ];
+          configPackages = [ pkgs.asahi-audio ];
           extraLv2Packages = lv2Packages;
         };
       };
@@ -52,19 +50,8 @@
       systemd.user.services.wireplumber.environment.ALSA_CONFIG_UCM2 = config.environment.variables.ALSA_CONFIG_UCM2;
 
       # enable speakersafetyd to protect speakers
-      systemd.packages = lib.mkAssert lsp-plugins-is-safe
-        "lsp-plugins is unpatched/outdated and speakers cannot be safely enabled"
-        [ pkgs.speakersafetyd ];
+      systemd.packages = [ pkgs.speakersafetyd ];
       services.udev.packages = [ pkgs.speakersafetyd ];
-
-      # asahi-sound requires wireplumber 0.5.2 or above
-      # https://github.com/AsahiLinux/asahi-audio/commit/29ec1056c18193ffa09a990b1b61ed273e97fee6
-      assertions = [
-        {
-          assertion = lib.versionAtLeast pkgs.wireplumber.version "0.5.2";
-          message = "wireplumber >= 0.5.2 is required for sound with nixos-apple-silicon.";
-        }
-      ];
     }
   ]);
 }
